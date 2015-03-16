@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import urllib
 import urllib2
 
@@ -12,7 +13,6 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.utils.hashcompat import sha_constructor
 from django.utils.translation import ugettext_lazy as _
 
 from django_push.subscriber.utils import get_hub, get_hub_credentials
@@ -69,8 +69,8 @@ class Subscription(models.Model):
         return u'%s: %s' % (self.topic, self.hub)
 
     def generate_token(self, mode):
-        digest = sha_constructor('%s%i%s' % (settings.SECRET_KEY,
-                                             self.pk, mode)).hexdigest()
+        digest = hashlib.sha1('%s%i%s' % (settings.SECRET_KEY,
+                                          self.pk, mode)).hexdigest()
         self.verify_token = mode[:20] + digest
         self.save()
         return self.verify_token
